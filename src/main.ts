@@ -26,7 +26,15 @@ function main() {
   console.log(`[START] ${currentRunTime} 回目の実行を開始します。 `);
 
   // 2.2. discover tasks
-  const tasks = discoverAllTasks(seed, domain);
+  const discoveredTasks = discoverAllTasks(seed, domain);
+  if (discoveredTasks.length === 0) {
+    console.log('[INFO] 処理対象の内部リンクが見つかりませんでした。');
+    return;
+  }
+  console.log(
+    `[PHASE 1] 発見フェーズ完了。合計 ${discoveredTasks.length} 件のリンク（重複除去）が見つかりました。`
+  );
+
   // 3. calculate all the html blob and generate theirs fingerprints
   // 4. memorize fingerprints from current run
   // ---first run ends here---
@@ -67,8 +75,5 @@ function discoverAllTasks(seedUrl: string, domain: string): string[] {
       }
     }
   }
-  console.log(
-    `[COMPLETE] クロールが完了しました。 ${visitedUrls.size} 個の内部リンクが見つかりました。`
-  );
   return Array.from(visitedUrls);
 }
