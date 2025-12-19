@@ -1,5 +1,12 @@
 function main() {
   // 1. get seed url from sheet
+  const book = SpreadsheetApp.getActiveSpreadsheet();
+  const foundSheets = findSheets(book);
+
+  console.log(foundSheets.seedSheet);
+  console.log(foundSheets.reportSheets);
+  console.log(foundSheets.runSheets);
+
   // 2. crawl all the internal links (same domain with seed url) start by seed url
   // 3. calculate all the html blob and generate theirs fingerprints
   // 4. memorize fingerprints from current run
