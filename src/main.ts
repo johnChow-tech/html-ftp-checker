@@ -26,8 +26,7 @@ function main() {
   console.log(`[START] ${currentRunTime} 回目の実行を開始します。 `);
 
   // 2.2. discover tasks
-  const tasks = [];
-  discoverAllTasks(seed, domain, tasks);
+  const tasks = discoverAllTasks(seed, domain);
   // 3. calculate all the html blob and generate theirs fingerprints
   // 4. memorize fingerprints from current run
   // ---first run ends here---
@@ -35,17 +34,41 @@ function main() {
   // 6. generate a report from 5
 }
 
-function discoverAllTasks(seedUrl: string, domain: string, tasks: any[]) {
-  // FIXME: need complement
-  try {
-    const response = tryFetchUrl(seedUrl, 'SEED');
-    const internalLinks = crawlForInternalLink(response, seedUrl, domain);
-    internalLinks.map((lnk) => {
-      tasks.push(lnk);
-      discoverAllTasks(lnk, domain, tasks);
-    });
-  } catch (e) {
-    if (e instanceof Error)
-      console.error(`    [ERROR] ${seedUrl} のスキャンに失敗しました: ${e.message}`);
+function discoverAllTasks(seedUrl: string, domain: string): string[] {
+  const visitedUrls = new Set<string>();
+  const urlsToVisit: string[] = [];
+
+  // Add the seed URL to the queue and visited set
+  urlsToVisit.push(seedUrl);
+  visitedUrls.add(seedUrl);
+
+  while (urlsToVisit.length > 0 && visitedUrls.size < MAX_PAGE_TO_CRAWL) {
+    const currentUrl = urlsToVisit.shift(); // Dequeue
+    if (!currentUrl) continue;
+
+    try {
+      // console.log(`[CRAWLING] 現在のURL: ${currentUrl}`);
+      const response = tryFetchUrl(currentUrl, 'INTERNAL_LINK');
+
+      if (response) {
+        const internalLinks = crawlForInternalLink(response, currentUrl, domain);
+        for (const link of internalLinks) {
+          if (!visitedUrls.has(link)) {
+            visitedUrls.add(link);
+            urlsToVisit.push(link); // Enqueue
+          }
+        }
+      }
+    } catch (e) {
+      if (e instanceof Error) {
+        console.error(`    [ERROR] ${currentUrl} のスキャンに失敗しました: ${e.message}`);
+      } else {
+        console.error(`    [ERROR] ${currentUrl} のスキャン中に不明なエラーが発生しました: ${e}`);
+      }
+    }
   }
+  console.log(
+    `[COMPLETE] クロールが完了しました。 ${visitedUrls.size} 個の内部リンクが見つかりました。`
+  );
+  return Array.from(visitedUrls);
 }
