@@ -1,0 +1,14 @@
+{
+  "dependencies": {
+    "@types/google-apps-script": "^2.0.5",
+    "typescript": "^5.9.3"
+  },
+  "scripts": {
+    "build:js": "npx tsc",
+    "clasp:push": "clasp push",
+    "push": "npm-run-all build:js clasp:push"
+  },
+  "devDependencies": {
+    "npm-run-all": "^4.1.5"
+  }
+}
