@@ -27,24 +27,33 @@ function main() {
 
   // 2.2. discover tasks
   const discoveredTasks = discoverAllTasks(seed, domain);
-  if (discoveredTasks.length === 0) {
+  if (discoveredTasks.size === 0) {
     console.log('[INFO] 処理対象の内部リンクが見つかりませんでした。');
     return;
   }
+
+  // test
+  const key = Array.from(discoveredTasks.keys());
+  key.forEach((k) => {
+    const value = discoveredTasks.get(k);
+    console.log(`key=${k}`);
+    console.log(`value=${value}`);
+  });
+
   console.log(
-    `[PHASE 1] 発見フェーズ完了。合計 ${discoveredTasks.length} 件のリンク（重複除去）が見つかりました。`
+    `[PHASE 1] 発見フェーズ完了。合計 ${discoveredTasks.size} 件のリンク（重複除去）が見つかりました。`
   );
 
-  // 3. calculate all the html blob and generate theirs fingerprints
-  // 4. memorize fingerprints from current run
+  // 3. memorize fingerprints from current run
   // ---first run ends here---
-  // 5. diff the fingerprints from current run and previous run
-  // 6. generate a report from 5
+  // 4. diff the fingerprints from current run and previous run
+  // 5. generate a report from 5
 }
 
-function discoverAllTasks(seedUrl: string, domain: string): string[] {
+function discoverAllTasks(seedUrl: string, domain: string): Map<string, string> {
   const visitedUrls = new Set<string>();
   const urlsToVisit: string[] = [];
+  const fingerprintPairs = new Map<string, string>();
 
   // Add the seed URL to the queue and visited set
   urlsToVisit.push(seedUrl);
@@ -59,6 +68,10 @@ function discoverAllTasks(seedUrl: string, domain: string): string[] {
       const response = tryFetchUrl(currentUrl, 'INTERNAL_LINK');
 
       if (response) {
+        // 2.3. get fingerprints
+        const fingerPrint = calculateFingerprint(response);
+        fingerprintPairs.set(currentUrl, fingerPrint);
+
         const internalLinks = crawlForInternalLink(response, currentUrl, domain);
         for (const link of internalLinks) {
           if (!visitedUrls.has(link)) {
@@ -75,5 +88,10 @@ function discoverAllTasks(seedUrl: string, domain: string): string[] {
       }
     }
   }
-  return Array.from(visitedUrls);
+  return fingerprintPairs;
+}
+
+function getTimeStamp(): string {
+  const now = new Date();
+  return Utilities.formatDate(now, Session.getScriptTimeZone(), 'yyyy-MM-dd HH:mm:ss');
 }

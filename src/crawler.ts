@@ -30,6 +30,7 @@ function tryFetchUrl(url: string, fetchType: FetchType): HTTPResponse {
     }
   }
 }
+
 function resolveUrl(href: string, baseUrl: string): string | null {
   href = href.trim();
 
@@ -116,4 +117,19 @@ function crawlForInternalLink(response: HTTPResponse, url: string, domain: strin
 
   return Array.from(internalUrls);
 }
-function calculateFingerPrint() {}
+
+function calculateFingerprint(response: HTTPResponse | null): string {
+  if (!response) return ''; // responseがnullの場合は空文字列を返す
+
+  const blob = response.getBlob();
+  const hashBytes = blob.getBytes();
+  const rawHash = Utilities.computeDigest(Utilities.DigestAlgorithm.SHA_256, hashBytes);
+
+  const fingerPrint = Array.from(rawHash)
+    .map((byte) => {
+      const unsignedByte = byte < 0 ? byte + 256 : byte;
+      return unsignedByte.toString(16).padStart(2, '0');
+    })
+    .join('');
+  return fingerPrint;
+}
