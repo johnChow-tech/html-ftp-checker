@@ -20,12 +20,9 @@ const RUN_RESULT_SHEET_FINGERPRINT_COL_IDX = 3;
 const RUN_RESULT_SHEET_TIMESTAMP_COL_IDX = 4;
 
 // --- Report シート関連 ---
-const BRIEF_HEADER_BG_COLOR = '#4a86e8';
-const BRIEF_HEADER_FONT_COLOR = '#f3f3f3';
 const DETAIL_HEADER_BG_COLOR = '#f3f3f3';
 const DETAIL_HEADER_FONT_COLOR = '#000000';
 const REPORT_HEADER = ['URL', 'Status', 'Previous Fingerprint', 'Current Fingerprint'];
 const REPORT_SHEET_SEEDINDEX_COL_IDX = 0;
 const REPORT_SHEET_DIFF_STATUS_COL_IDX = 1;
 const SPACING_IN_REPORT = 1;
-const BRIEF_HEADER = ['Seed URL', 'Internal Links Count', 'Status'];

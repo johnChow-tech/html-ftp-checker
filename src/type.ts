@@ -40,11 +40,8 @@ type BriefReportRow = [
   BriefStatus // status
 ];
 
-type BriefReportData = [typeof BRIEF_HEADER, ...BriefReportRow[]];
-
 interface ReportData {
   detail: DetailReportData | null;
-  brief: BriefReportData | null;
 }
 
 type RunsToCompare = {

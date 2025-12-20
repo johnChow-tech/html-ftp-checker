@@ -115,11 +115,6 @@ function getAllValuesFromRunSheet(runSheet: Sheet): RunResultRow[] {
 function writeReportToSheet(sheetInfo: SheetInfo, reportData: ReportData) {
   const { sheet, sheetName } = sheetInfo;
   try {
-    if (reportData.brief && reportData.brief.length > 0) {
-      const briefRange = sheet.getRange(1, 1, reportData.brief.length, reportData.brief[0].length);
-      briefRange.setValues(reportData.brief).setBorder(true, true, true, true, false, false);
-    }
-
     if (reportData.detail && reportData.detail.length > 0) {
       const detailDataToWrite = [...reportData.detail];
       if (detailDataToWrite.length === 1) {
@@ -127,12 +122,7 @@ function writeReportToSheet(sheetInfo: SheetInfo, reportData: ReportData) {
         detailDataToWrite.push(unchangeNotice);
       }
 
-      const detailRange = sheet.getRange(
-        1,
-        reportData.brief[0].length + SPACING_IN_REPORT + 1,
-        detailDataToWrite.length,
-        detailDataToWrite[0].length
-      );
+      const detailRange = sheet.getRange(1, 1, detailDataToWrite.length, REPORT_HEADER.length);
       detailRange.setValues(detailDataToWrite).setBorder(true, true, true, true, false, false);
 
       setReportHeaderStyle(sheetInfo, reportData);
@@ -148,35 +138,14 @@ function writeReportToSheet(sheetInfo: SheetInfo, reportData: ReportData) {
 function setReportHeaderStyle(sheetInfo: SheetInfo, reportData: ReportData) {
   const { sheet, sheetName } = sheetInfo;
   try {
-    // 簡易レポートのヘッダー設定
-    const briefHeaderRange = sheet.getRange(
-      1,
-      1,
-      1,
-      reportData.brief[0].length // brief 自身の列数 (4) を使用
-    );
-    briefHeaderRange
-      .setBackground(BRIEF_HEADER_BG_COLOR)
-      .setBorder(false, false, true, false, false, false)
-      .setFontColor(BRIEF_HEADER_FONT_COLOR);
     // 詳細レポートのヘッダー設定
-    const detailHeaderRange = sheet.getRange(
-      1,
-      reportData.brief[0].length + SPACING_IN_REPORT + 1,
-      1,
-      reportData.detail[0].length
-    );
+    const detailHeaderRange = sheet.getRange(1, 1, 1, REPORT_HEADER.length);
     detailHeaderRange
       .setBackground(DETAIL_HEADER_BG_COLOR)
       .setBorder(false, false, true, false, false, false)
       .setFontColor(DETAIL_HEADER_FONT_COLOR);
     //フィルター、1行目の固定
-    const reportRange = sheet.getRange(
-      1,
-      1,
-      reportData.detail.length, // 行数は詳細レポートの長さに依存
-      reportData.brief[0].length + SPACING_IN_REPORT + reportData.detail[0].length // 列数は合算
-    );
+    const reportRange = sheet.getRange(1, 1, reportData.detail.length, REPORT_HEADER.length);
     reportRange.createFilter();
     sheet.setFrozenRows(1);
   } catch (e) {
