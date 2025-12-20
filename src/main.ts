@@ -26,22 +26,14 @@ function main() {
   console.log(`[START] ${currentRunTime} 回目の実行を開始します。 `);
 
   // 2.2. discover tasks
-  const urlAndFingerprintPairs = discoverAllTasks(seed, domain);
-  if (urlAndFingerprintPairs.size === 0) {
+  const resultForThisRun = discoverAllTasks(seed, domain);
+  if (resultForThisRun.size === 0) {
     console.log('[INFO] 処理対象の内部リンクが見つかりませんでした。');
     return;
   }
 
-  // // test
-  // const key = Array.from(discoveredTasks.keys());
-  // key.forEach((k) => {
-  //   const value = discoveredTasks.get(k);
-  //   console.log(`key=${k}`);
-  //   console.log(`value=${value}`);
-  // });
-
   console.log(
-    `[PHASE 1] 発見フェーズ完了。合計 ${urlAndFingerprintPairs.size} 件のリンク（重複除去）が見つかりました。`
+    `[PHASE 1] 発見フェーズ完了。合計 ${resultForThisRun.size} 件のリンク（重複除去）が見つかりました。`
   );
 
   // 3. memorize fingerprints from current run
@@ -49,11 +41,32 @@ function main() {
   const currentRunSheet = addNewSheet(book, RUN_SHEET_PREFIX, currentRunTime);
 
   // 3.2. write result the newly added runsheet
-  writeRunResultToSheet(currentRunSheet, urlAndFingerprintPairs, currentRunTime);
+  writeRunResultToSheet(currentRunSheet, resultForThisRun, currentRunTime);
 
   // ---first run ends here---
-  // 4. diff the fingerprints from current run and previous run
-  // 5. generate a report from 5
+  // 4. clean up run sheets and report sheets kept older than ${MAX_HISTORY_TO_KEEP} times run
+  cleanUpRunSheets(book, runSheets, latestRunTime);
+
+  // 5. diff the fingerprints from current run and previous run
+  let latestRunValuesProcessed: Array<[string, string]> = []; // Default to empty array
+  if (latestRunSheetInfo && latestRunSheetInfo.sheet) {
+      const latestRunValuesRaw = getAllValuesFromRunSheet(latestRunSheetInfo.sheet);
+      // Transform latestRunValuesRaw from old format [seedIndex, url, fingerprint] to new format [url, fingerprint]
+      latestRunValuesProcessed = latestRunValuesRaw.map((row) => {
+          // Assuming row structure for latestRunValuesRaw is [seedIndex (number), url (string), fingerprint (string)]
+          const url = row[1]; // URL is at index 1
+          const fingerprint = row[2]; // Fingerprint is at index 2
+          return [url, fingerprint];
+      });
+  } else {
+      console.log('[INFO] Previous run data not found. No diff will be generated.');
+  }
+  const reportData = generateReport(latestRunValuesProcessed, resultForThisRun, seed);
+
+  // 6. generate a report from 5
+  const currentReportSheet = addNewSheet(book, REPORT_SHEET_PREFIX, currentRunTime);
+  writeReportToSheet(currentReportSheet, reportData);
+  SpreadsheetApp.flush();
 }
 
 function discoverAllTasks(seedUrl: string, domain: string): Map<string, string> {

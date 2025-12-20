@@ -23,3 +23,31 @@ interface SheetInfo {
   sheetName: string;
   runTime: number;
 }
+type DetailReportData = [typeof REPORT_HEADER, ...ReportRow[]];
+type ReportRow = [
+  string, // url
+  DiffStatus, // status
+  string, // previous fingerprint
+  string // current fingerprint
+];
+type DiffStatus = '追加' | '変更' | '不変' | '削除' | 'リンク切れ' | null;
+
+type BriefStatus = 'OK' | 'NG' | null;
+
+type BriefReportRow = [
+  string, // seed url
+  number, // internal links count
+  BriefStatus // status
+];
+
+type BriefReportData = [typeof BRIEF_HEADER, ...BriefReportRow[]];
+
+interface ReportData {
+  detail: DetailReportData | null;
+  brief: BriefReportData | null;
+}
+
+type RunsToCompare = {
+  previousRunValues: RunResultRow[];
+  currentRunValues: RunResultRow[];
+};

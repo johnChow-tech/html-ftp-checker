@@ -91,5 +91,102 @@ function writeRunResultToSheet(
   }
 }
 
+function getAllValuesFromRunSheet(runSheet: Sheet): RunResultRow[] {
+  try {
+    const allValues = runSheet.getDataRange().getValues();
+    if (allValues.length < 2) {
+      // ヘッダー行（1行）より少ない場合はデータがないとみなす
+      throw new Error(`シート ${runSheet.getName()} は空です`);
+    }
+
+    allValues.shift(); // remove header
+    return allValues as RunResultRow[];
+  } catch (e) {
+    if (e instanceof Error) {
+      throw new Error(
+        `[ERROR] シート ${runSheet.getName()} からのコンテンツ取得に失敗しました: ${e.message}`
+      );
+    } else {
+      throw new Error(`[ERROR] 不明なエラーが発生しました: ${e}`);
+    }
+  }
+}
+
+function writeReportToSheet(sheetInfo: SheetInfo, reportData: ReportData) {
+  const { sheet, sheetName } = sheetInfo;
+  try {
+    if (reportData.brief && reportData.brief.length > 0) {
+      const briefRange = sheet.getRange(1, 1, reportData.brief.length, reportData.brief[0].length);
+      briefRange.setValues(reportData.brief).setBorder(true, true, true, true, false, false);
+    }
+
+    if (reportData.detail && reportData.detail.length > 0) {
+      const detailDataToWrite = [...reportData.detail];
+      if (detailDataToWrite.length === 1) {
+        const unchangeNotice = ['前回と変化なし', '不変', null, null] as ReportRow;
+        detailDataToWrite.push(unchangeNotice);
+      }
+
+      const detailRange = sheet.getRange(
+        1,
+        reportData.brief[0].length + SPACING_IN_REPORT + 1,
+        detailDataToWrite.length,
+        detailDataToWrite[0].length
+      );
+      detailRange.setValues(detailDataToWrite).setBorder(true, true, true, true, false, false);
+
+      setReportHeaderStyle(sheetInfo, reportData);
+      console.log(`[SUCCESS] レポートをシート "${sheetName}" に正常に書き込みました。`);
+    }
+  } catch (e) {
+    if (e instanceof Error) {
+      throw new Error(`[ERROR] シート "${sheetName}" への書き込みに失敗しました: ${e.message}`);
+    }
+  }
+}
+
+function setReportHeaderStyle(sheetInfo: SheetInfo, reportData: ReportData) {
+  const { sheet, sheetName } = sheetInfo;
+  try {
+    // 簡易レポートのヘッダー設定
+    const briefHeaderRange = sheet.getRange(
+      1,
+      1,
+      1,
+      reportData.brief[0].length // brief 自身の列数 (4) を使用
+    );
+    briefHeaderRange
+      .setBackground(BRIEF_HEADER_BG_COLOR)
+      .setBorder(false, false, true, false, false, false)
+      .setFontColor(BRIEF_HEADER_FONT_COLOR);
+    // 詳細レポートのヘッダー設定
+    const detailHeaderRange = sheet.getRange(
+      1,
+      reportData.brief[0].length + SPACING_IN_REPORT + 1,
+      1,
+      reportData.detail[0].length
+    );
+    detailHeaderRange
+      .setBackground(DETAIL_HEADER_BG_COLOR)
+      .setBorder(false, false, true, false, false, false)
+      .setFontColor(DETAIL_HEADER_FONT_COLOR);
+    //フィルター、1行目の固定
+    const reportRange = sheet.getRange(
+      1,
+      1,
+      reportData.detail.length, // 行数は詳細レポートの長さに依存
+      reportData.brief[0].length + SPACING_IN_REPORT + reportData.detail[0].length // 列数は合算
+    );
+    reportRange.createFilter();
+    sheet.setFrozenRows(1);
+  } catch (e) {
+    if (e instanceof Error) {
+      throw new Error(`[ERROR] シート "${sheetName}" への書き込みに失敗しました: ${e.message}`);
+    }
+  }
+}
+
+// TODO:
 function removeSheetAfter(book: Book, sheet: Sheet, sheetName: string) {}
 function getPreviousFingerprint(sheet: Sheet) {}
+function cleanUpRunSheets(book: Book, runSheets: SheetInfo[], latestRunTime: number): void {}
