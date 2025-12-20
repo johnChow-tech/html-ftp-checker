@@ -41,8 +41,55 @@ function findSheets(book: Book) {
     }
   }
 }
-function addNewSheet(book: Book): Sheet {
-  return;
+function addNewSheet(book: Book, sheetNamePrefix: string, currentRunTime: number): SheetInfo {
+  const currentRunName = `${sheetNamePrefix}${currentRunTime}`;
+  try {
+    const currentRunSheet = book.insertSheet(currentRunName);
+    return {
+      sheet: currentRunSheet,
+      sheetName: currentRunName,
+      runTime: currentRunTime,
+    };
+  } catch (e) {
+    if (e instanceof Error) {
+      throw new Error(`[ERROR] シート "${currentRunName}" の挿入に失敗しました: ${e.message}`);
+    } else {
+      throw new Error(`[ERROR] 不明なエラーが発生しました: ${e}`);
+    }
+  }
 }
+
+function writeRunResultToSheet(
+  sheetInfo: SheetInfo,
+  results: Map<string, string>,
+  currentRunTime: number
+): void {
+  const { sheet: sheet, sheetName: sheetName } = sheetInfo;
+  try {
+    const dataToWrite: RunResultSheetData = [RUN_RESULT_SHEET_HEADER];
+
+    const keys = Array.from(results.keys());
+    keys.map((k) => {
+      const v = results.get(k);
+      const urlAndFingerprint: RunResultRow = [currentRunTime, k, v];
+      dataToWrite.push(urlAndFingerprint);
+    });
+
+    const range = sheet.getRange(1, 1, dataToWrite.length, RUN_RESULT_SHEET_HEADER.length);
+
+    range.setValues(dataToWrite);
+    range.createFilter();
+    sheet.setFrozenRows(1);
+
+    console.log(
+      `[SUCCESS] ${keys.length} 件のレコードをシート "${sheetName}" に正常に書き込みました`
+    );
+  } catch (e) {
+    if (e instanceof Error) {
+      throw new Error(`[ERROR] シート "${sheetName}" への書き込みに失敗しました: ${e.message}`);
+    }
+  }
+}
+
 function removeSheetAfter(book: Book, sheet: Sheet, sheetName: string) {}
 function getPreviousFingerprint(sheet: Sheet) {}

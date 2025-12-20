@@ -26,25 +26,31 @@ function main() {
   console.log(`[START] ${currentRunTime} 回目の実行を開始します。 `);
 
   // 2.2. discover tasks
-  const discoveredTasks = discoverAllTasks(seed, domain);
-  if (discoveredTasks.size === 0) {
+  const urlAndFingerprintPairs = discoverAllTasks(seed, domain);
+  if (urlAndFingerprintPairs.size === 0) {
     console.log('[INFO] 処理対象の内部リンクが見つかりませんでした。');
     return;
   }
 
-  // test
-  const key = Array.from(discoveredTasks.keys());
-  key.forEach((k) => {
-    const value = discoveredTasks.get(k);
-    console.log(`key=${k}`);
-    console.log(`value=${value}`);
-  });
+  // // test
+  // const key = Array.from(discoveredTasks.keys());
+  // key.forEach((k) => {
+  //   const value = discoveredTasks.get(k);
+  //   console.log(`key=${k}`);
+  //   console.log(`value=${value}`);
+  // });
 
   console.log(
-    `[PHASE 1] 発見フェーズ完了。合計 ${discoveredTasks.size} 件のリンク（重複除去）が見つかりました。`
+    `[PHASE 1] 発見フェーズ完了。合計 ${urlAndFingerprintPairs.size} 件のリンク（重複除去）が見つかりました。`
   );
 
   // 3. memorize fingerprints from current run
+  // 3.1. add new sheet to record current run result
+  const currentRunSheet = addNewSheet(book, RUN_SHEET_PREFIX, currentRunTime);
+
+  // 3.2. write result the newly added runsheet
+  writeRunResultToSheet(currentRunSheet, urlAndFingerprintPairs, currentRunTime);
+
   // ---first run ends here---
   // 4. diff the fingerprints from current run and previous run
   // 5. generate a report from 5

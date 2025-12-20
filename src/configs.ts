@@ -9,3 +9,4 @@ const CRAWL_REPORT_START_MARK = 'Crawl result >>';
 
 const RUN_SHEET_PREFIX = 'Run_';
 const REPORT_SHEET_PREFIX = 'Report_';
+const RUN_RESULT_SHEET_HEADER = ['実行回数', 'URL', '指紋'];
