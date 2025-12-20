@@ -7,6 +7,16 @@ function main() {
   const runSheets = foundSheets.runSheets;
   const reportSheets = foundSheets.reportSheets;
 
+  const crawlStartMarkSheet = foundSheets.crawlStartMarkSheet;
+  const diffStartMarkSheet = foundSheets.diffStartMarkSheet;
+
+  if (!crawlStartMarkSheet) {
+    addNewSheet(book, CRAWL_REPORT_START_MARK, 'MARK');
+  }
+  if (!diffStartMarkSheet) {
+    addNewSheet(book, DIFF_START_MARK, 'MARK');
+  }
+
   const latestRunSheetInfo = runSheets.length !== 0 ? runSheets[0] : null;
   const latestRunTime = latestRunSheetInfo ? latestRunSheetInfo.runTime : 0;
   const currentRunTime = latestRunTime + 1;
@@ -38,35 +48,36 @@ function main() {
 
   // 3. memorize fingerprints from current run
   // 3.1. add new sheet to record current run result
-  const currentRunSheet = addNewSheet(book, RUN_SHEET_PREFIX, currentRunTime);
+  const currentRunSheet = addNewSheet(book, RUN_SHEET_PREFIX, 'RESULT', currentRunTime);
 
   // 3.2. write result the newly added runsheet
   writeRunResultToSheet(currentRunSheet, resultForThisRun, currentRunTime);
 
   // ---first run ends here---
-  // 4. clean up run sheets and report sheets kept older than ${MAX_HISTORY_TO_KEEP} times run
-  cleanUpRunSheets(book, runSheets, latestRunTime);
 
-  // 5. diff the fingerprints from current run and previous run
+  // 4. diff the fingerprints from current run and previous run
   let latestRunValuesProcessed: Array<[string, string]> = []; // Default to empty array
   if (latestRunSheetInfo && latestRunSheetInfo.sheet) {
-      const latestRunValuesRaw = getAllValuesFromRunSheet(latestRunSheetInfo.sheet);
-      // Transform latestRunValuesRaw from old format [seedIndex, url, fingerprint] to new format [url, fingerprint]
-      latestRunValuesProcessed = latestRunValuesRaw.map((row) => {
-          // Assuming row structure for latestRunValuesRaw is [seedIndex (number), url (string), fingerprint (string)]
-          const url = row[1]; // URL is at index 1
-          const fingerprint = row[2]; // Fingerprint is at index 2
-          return [url, fingerprint];
-      });
+    const latestRunValuesRaw = getAllValuesFromRunSheet(latestRunSheetInfo.sheet);
+    latestRunValuesProcessed = latestRunValuesRaw.map((row) => {
+      const url = row[1]; // URL is at index 1
+      const fingerprint = row[2]; // Fingerprint is at index 2
+      return [url, fingerprint];
+    });
   } else {
-      console.log('[INFO] Previous run data not found. No diff will be generated.');
+    console.log('[INFO] Previous run data not found. No diff will be generated.');
   }
   const reportData = generateReport(latestRunValuesProcessed, resultForThisRun, seed);
 
-  // 6. generate a report from 5
-  const currentReportSheet = addNewSheet(book, REPORT_SHEET_PREFIX, currentRunTime);
+  // 5. generate a report from 5
+  const currentReportSheet = addNewSheet(book, REPORT_SHEET_PREFIX, 'RESULT', currentRunTime);
   writeReportToSheet(currentReportSheet, reportData);
+
+  // 6. clean up report history and arange sheets order
+  cleanUpRunSheets(book, reportSheets, latestRunTime);
   SpreadsheetApp.flush();
+  moveSheetAfter(book, currentRunSheet.sheet, crawlStartMarkSheet);
+  moveSheetAfter(book, currentReportSheet.sheet, diffStartMarkSheet);
 }
 
 function discoverAllTasks(seedUrl: string, domain: string): Map<string, string> {

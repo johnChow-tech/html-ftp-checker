@@ -3,6 +3,7 @@ type Book = GoogleAppsScript.Spreadsheet.Spreadsheet;
 type Sheet = GoogleAppsScript.Spreadsheet.Sheet;
 type HTTPResponse = GoogleAppsScript.URL_Fetch.HTTPResponse;
 type FetchType = 'SEED' | 'INTERNAL_LINK';
+type AddSheetType = 'RESULT' | 'MARK';
 
 type RunResultRow = [
   number, // runTimes
@@ -16,6 +17,8 @@ interface FoundSheets {
   seedSheet: Sheet | null;
   runSheets: SheetInfo[];
   reportSheets: SheetInfo[];
+  crawlStartMarkSheet: Sheet;
+  diffStartMarkSheet: Sheet;
 }
 
 interface SheetInfo {

@@ -13,6 +13,12 @@ function findSheets(book: Book) {
         if (sheetName === SEED_SHEET) {
           acc.seedSheet = sheet;
         }
+        if (sheetName === CRAWL_REPORT_START_MARK) {
+          acc.crawlStartMarkSheet = sheet;
+        }
+        if (sheetName === DIFF_START_MARK) {
+          acc.diffStartMarkSheet = sheet;
+        }
         if (runMatch) {
           const runTime = parseInt(runMatch[1], 10);
           acc.runSheets.push({ sheet, sheetName, runTime });
@@ -23,7 +29,13 @@ function findSheets(book: Book) {
 
         return acc;
       },
-      { seedSheet: null, runSheets: [], reportSheets: [] }
+      {
+        seedSheet: null,
+        runSheets: [],
+        reportSheets: [],
+        crawlStartMarkSheet: null,
+        diffStartMarkSheet: null,
+      }
     );
 
     // 実行回数の降順（最新のものが先頭）にソート
@@ -41,18 +53,24 @@ function findSheets(book: Book) {
     }
   }
 }
-function addNewSheet(book: Book, sheetNamePrefix: string, currentRunTime: number): SheetInfo {
-  const currentRunName = `${sheetNamePrefix}${currentRunTime}`;
+function addNewSheet(
+  book: Book,
+  newSheetName: string,
+  type: AddSheetType,
+  currentRunTime: number = null
+): SheetInfo {
+  let sheetName = type === 'MARK' ? `${newSheetName}` : `${newSheetName}${currentRunTime}`;
+
   try {
-    const currentRunSheet = book.insertSheet(currentRunName);
+    const currentRunSheet = book.insertSheet(sheetName);
     return {
       sheet: currentRunSheet,
-      sheetName: currentRunName,
+      sheetName: sheetName,
       runTime: currentRunTime,
     };
   } catch (e) {
     if (e instanceof Error) {
-      throw new Error(`[ERROR] シート "${currentRunName}" の挿入に失敗しました: ${e.message}`);
+      throw new Error(`[ERROR] シート "${sheetName}" の挿入に失敗しました: ${e.message}`);
     } else {
       throw new Error(`[ERROR] 不明なエラーが発生しました: ${e}`);
     }
@@ -155,7 +173,52 @@ function setReportHeaderStyle(sheetInfo: SheetInfo, reportData: ReportData) {
   }
 }
 
-// TODO:
-function removeSheetAfter(book: Book, sheet: Sheet, sheetName: string) {}
-function getPreviousFingerprint(sheet: Sheet) {}
-function cleanUpRunSheets(book: Book, runSheets: SheetInfo[], latestRunTime: number): void {}
+function moveSheetAfter(book: Book, sheet: Sheet, markSheet: Sheet) {
+  try {
+    const targetIndex = markSheet.getIndex();
+    // const totalSheet = book.getNumSheets();
+
+    const moveTo = targetIndex; // === totalSheet ? totalSheet : targetIndex + 1;
+    if (moveTo === sheet.getIndex()) {
+      return;
+    }
+
+    sheet.activate();
+    book.moveActiveSheet(moveTo);
+  } catch (e) {
+    if (e instanceof Error) {
+      throw new Error(
+        `[ERROR] シート "${markSheet.getSheetName()}" の移動に失敗しました: ${e.message}`
+      );
+    } else {
+      throw new Error(`[ERROR] 不明なエラーが発生しました: ${e}`);
+    }
+  }
+}
+function cleanUpRunSheets(book: Book, runSheets: SheetInfo[], latestRunTime: number): void {
+  const runSheetsCount = runSheets.length + 1;
+  if (runSheetsCount <= MAX_HISTORY_TO_KEEP) {
+    console.log(
+      `[INFO] 実行結果シート数が ${runSheetsCount} 枚で、${MAX_HISTORY_TO_KEEP} 枚以下のため、クリーンアップをスキップします`
+    );
+    return;
+  }
+
+  const runToKeepFrom = latestRunTime - MAX_HISTORY_TO_KEEP + 1;
+  let SheetToDelete;
+  try {
+    runSheets.forEach((sheet) => {
+      if (sheet.runTime <= runToKeepFrom) {
+        SheetToDelete = sheet.sheetName;
+        book.deleteSheet(sheet.sheet);
+        console.log(`[INFO] 履歴シート "${SheetToDelete}" を削除しました`);
+      }
+    });
+  } catch (e) {
+    if (e instanceof Error) {
+      throw new Error(`[ERROR] 履歴シート "${SheetToDelete}" の削除に失敗しました: ${e.message}`);
+    } else {
+      throw new Error(`[ERROR] 不明なエラーが発生しました: ${e}`);
+    }
+  }
+}

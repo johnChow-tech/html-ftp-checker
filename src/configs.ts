@@ -1,4 +1,4 @@
-const MAX_PAGE_TO_CRAWL = 80;
+const MAX_PAGE_TO_CRAWL = 10000;
 const MAX_HISTORY_TO_KEEP = 7;
 
 const SEED_SHEET = 'Seed';
