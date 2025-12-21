@@ -74,6 +74,7 @@ function main() {
   writeReportToSheet(currentReportSheet, reportData);
 
   // 6. clean up report history and arange sheets order
+  cleanUpRunSheets(book, runSheets, latestRunTime);
   cleanUpRunSheets(book, reportSheets, latestRunTime);
   SpreadsheetApp.flush();
   moveSheetAfter(book, currentRunSheet.sheet, crawlStartMarkSheet);

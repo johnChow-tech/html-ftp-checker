@@ -199,7 +199,7 @@ function cleanUpRunSheets(book: Book, runSheets: SheetInfo[], latestRunTime: num
   const runSheetsCount = runSheets.length + 1;
   if (runSheetsCount <= MAX_HISTORY_TO_KEEP) {
     console.log(
-      `[INFO] 実行結果シート数が ${runSheetsCount} 枚で、${MAX_HISTORY_TO_KEEP} 枚以下のため、クリーンアップをスキップします`
+      `[INFO] シート数が ${runSheetsCount} 枚で、${MAX_HISTORY_TO_KEEP} 枚以下のため、クリーンアップをスキップします`
     );
     return;
   }
