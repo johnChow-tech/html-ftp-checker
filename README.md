@@ -6,6 +6,24 @@
 
 このプロジェクトは TypeScript で記述されており、ローカルでの開発とデプロイのために `clasp` を使用します。HTML解析には `Cheerio` ライブラリを利用しています。
 
+## 0. 使用イメージ(Usage image)
+### 1.`Seed`
+スクリプトの起点、必要な情報を記載の上でcheckボタンを押下するとスクリプトが起動します。
+1. クロールしたいURLのhostname
+2. クロールしたいURLのスタートページ(index.htmlなどのFVページ)
+<img src="images/seed.png" width="500">
+
+### 2. `Run_${実行回数}`(指紋内訳シート）
+ページ内にのあらゆる`href`を保存して、もしの`hostname`と一致すれば対象としてfetchして、そのレスポンスの`blob`のhash-256値を指紋として算出して、保存します。
+
+<img src="images/run.png" height="300">
+
+### 3. `Report_${実行回数}`（結果レポートシート）
+Run_${今回の実行回数 - 1}の指紋と比較して、変化のあるページを記載します。<br>
+<img src="images/report-diff.png" width="300"><br>
+もし全体と変化がなければ`不変`が表示されます。<br>
+<img src="images/report-same.png" width="300">
+
 ## 1. 前提条件 (Prerequisites)
 
 作業を開始する前に、開発環境に以下のツールがインストールされていることを確認してください：
