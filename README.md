@@ -1,5 +1,9 @@
 # html-ftp-checker
 
+[![TypeScript](https://img.shields.io/badge/TypeScript-007ACC?style=for-the-badge&logo=typescript&logoColor=white)](https://www.typescriptlang.org/) 
+[![Google Apps Script](https://img.shields.io/badge/Google%20Apps%20Script-4285F4?style=for-the-badge&logo=google-apps-script&logoColor=white)](https://script.google.com/) 
+[![Node.js](https://img.shields.io/badge/Node.js-339933?style=for-the-badge&logo=nodedotjs&logoColor=white)](https://nodejs.org/)
+
 これは、指定されたウェブサイトの内部リンクを自動的にクロールし、「指紋」（SHA-256ハッシュ値）を生成してページの変更（追加、変更、削除、リンク切れ）を監視し、結果をレポートシートに出力するための Google Apps Script (GAS) プロジェクトです。
 
 各実行結果は個別の `Run_*` シートに保存され、比較レポートは `Report_*` シートに生成されます。古いシートは自動的にクリーンアップされます。
@@ -29,7 +33,7 @@ Run_${今回の実行回数 - 1}の指紋と比較して、変化のあるペー
 作業を開始する前に、開発環境に以下のツールがインストールされていることを確認してください：
 
 1.  **Node.js と npm**: [https://nodejs.org/](https://nodejs.org/)
-2.  **Google clasp**: `clasp` は Google 公式の GAS コマンドラインツールです。
+2.  **Google clasp**: `clasp` は Google 公式のGASコマンドラインツールです。
     ```bash
     npm install -g @google/clasp
     ```
@@ -78,10 +82,10 @@ Run_${今回の実行回数 - 1}の指紋と比較して、変化のあるペー
 
 ## 5. 実行方法 (How to Run)
 
-1.  Google Apps Script エディタを開きます。
-2.  実行したい関数（通常は `checkInternalLinks`）を関数セレクターから選択します。
-3.  「実行」ボタンをクリックします。
-4.  初回実行時には、スクリプトに必要な権限（外部サービスへのアクセス、スプレッドシートの編集など）を承認するよう求められます。
+1. Google Apps Script エディタを開きます。
+2. 実行したい関数（通常は `checkInternalLinks`）を関数セレクターから選択します。
+3. 「実行」ボタンをクリックします。
+4. 初回実行時には、スクリプトに必要な権限（外部サービスへのアクセス、スプレッドシートの編集など）を承認するよう求められます。
 
 スクリプトは `種URLマスタ` からURLを読み込み、クロールを実行し、結果を新しい `Run_*` シートに書き込み、前回の実行結果と比較して `Report_*` シートを生成します。
 
